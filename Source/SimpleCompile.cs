@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -12,10 +11,6 @@ namespace CtrlClickCancel
     [StaticConstructorOnStartup]
     public static class CtrlClickCancel
     {
-        // Store the current designator to restore it after cancellation
-        public static Designator CurrentDesignator = null;
-        private static bool isInCancelMode = false;
-        
         static CtrlClickCancel()
         {
             var harmony = new Harmony("Stephen.CtrlClickCancel");
@@ -26,7 +21,7 @@ namespace CtrlClickCancel
         // Helper method to check if Ctrl key is pressed
         public static bool IsCtrlPressed()
         {
-            return UnityEngine.Input.GetKey(KeyCode.LeftControl) || UnityEngine.Input.GetKey(KeyCode.RightControl);
+            return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
         }
         
         // Centralized method to cancel designations at a cell
@@ -64,81 +59,28 @@ namespace CtrlClickCancel
             
             if (anythingCanceled)
             {
-                // We'll skip the sound for now since it's causing compilation issues
-                Log.Message("CtrlClickCancel: Successfully canceled designations");
-            }
-        }
-        
-        // Method to store the current designator
-        public static void StoreCurrentDesignator()
-        {
-            if (!isInCancelMode && Find.DesignatorManager?.SelectedDesignator != null)
-            {
-                CurrentDesignator = Find.DesignatorManager.SelectedDesignator;
-                isInCancelMode = true;
-                Log.Message($"CtrlClickCancel: Stored current designator: {CurrentDesignator}");
-                
-                // Temporarily deselect the current designator
-                Find.DesignatorManager.Deselect();
-            }
-        }
-        
-        // Method to restore the previously selected designator
-        public static void RestoreDesignator()
-        {
-            if (isInCancelMode && CurrentDesignator != null)
-            {
-                Log.Message($"CtrlClickCancel: Restoring designator: {CurrentDesignator}");
-                Find.DesignatorManager.Select(CurrentDesignator);
-                isInCancelMode = false;
+                // Play a sound to indicate successful cancellation
+                SoundDefOf.Designate_Cancel.PlayOneShotOnCamera();
             }
         }
     }
 
-    // Patch to monitor Ctrl key state changes
-    [HarmonyPatch(typeof(Root), "Update")]
-    public static class Root_Update_Patch
-    {
-        private static bool wasCtrlPressed = false;
-        
-        public static void Postfix()
-        {
-            bool isCtrlPressed = CtrlClickCancel.IsCtrlPressed();
-            
-            // If Ctrl was just pressed, store the current designator
-            if (isCtrlPressed && !wasCtrlPressed)
-            {
-                CtrlClickCancel.StoreCurrentDesignator();
-            }
-            // If Ctrl was just released, restore the designator
-            else if (!isCtrlPressed && wasCtrlPressed)
-            {
-                CtrlClickCancel.RestoreDesignator();
-            }
-            
-            wasCtrlPressed = isCtrlPressed;
-        }
-    }
-
-    // Patch for Designator.ProcessInput to handle mouse clicks and drags
+    // Patch for Designator.ProcessInput to handle mouse clicks
     [HarmonyPatch(typeof(Designator), "ProcessInput")]
     public static class Designator_ProcessInput_Patch
     {
         public static bool Prefix(Designator __instance, Event ev)
         {
-            // Only handle mouse events when Ctrl is pressed
-            if (CtrlClickCancel.IsCtrlPressed() && (ev.type == EventType.MouseDown || ev.type == EventType.MouseDrag) && ev.button == 0)
+            // Only handle mouse down events when Ctrl is pressed
+            if (CtrlClickCancel.IsCtrlPressed() && ev.type == EventType.MouseDown && ev.button == 0)
             {
-                // Store the current designator if we haven't already
-                CtrlClickCancel.StoreCurrentDesignator();
+                Log.Message("CtrlClickCancel: Ctrl+Click detected in ProcessInput");
                 
                 // Get the cell under the mouse
                 IntVec3 cell = UI.MouseCell();
                 if (cell.InBounds(Find.CurrentMap))
                 {
-                    Log.Message($"CtrlClickCancel: {ev.type} detected at {cell}");
                     CtrlClickCancel.CancelDesignationsAt(cell);
-                    
                     // Consume the event
                     Event.current.Use();
                     return false;
@@ -199,42 +141,25 @@ namespace CtrlClickCancel
         }
     }
     
-    // Patch to handle mouse input directly for dragging
+    // Patch to handle mouse input directly
     [HarmonyPatch(typeof(MapInterface), "HandleMapClicks")]
     public static class MapInterface_HandleMapClicks_Patch
     {
-        private static IntVec3 lastProcessedCell = IntVec3.Invalid;
-        private static int dragTick = 0;
-        
         public static bool Prefix()
         {
-            // If Ctrl is pressed and mouse button is down (for both clicks and drags)
-            if (CtrlClickCancel.IsCtrlPressed() && UnityEngine.Input.GetMouseButton(0))
+            // If Ctrl is pressed and left mouse button is clicked
+            if (CtrlClickCancel.IsCtrlPressed() && Input.GetMouseButtonDown(0))
             {
+                Log.Message("CtrlClickCancel: Ctrl+Click detected in HandleMapClicks");
+                
                 // Get the cell under the mouse
                 IntVec3 cell = UI.MouseCell();
-                
-                // Only process if it's a valid cell and different from the last one we processed
-                // or if enough time has passed (for continuous dragging over the same cell)
-                if (cell.InBounds(Find.CurrentMap) && 
-                    (cell != lastProcessedCell || Find.TickManager.TicksGame >= dragTick + 5))
+                if (cell.InBounds(Find.CurrentMap))
                 {
-                    Log.Message($"CtrlClickCancel: Mouse drag detected at {cell}");
                     CtrlClickCancel.CancelDesignationsAt(cell);
-                    
-                    // Update the last processed cell and tick
-                    lastProcessedCell = cell;
-                    dragTick = Find.TickManager.TicksGame;
-                    
                     return false; // Skip original method
                 }
             }
-            else
-            {
-                // Reset the last processed cell when not dragging
-                lastProcessedCell = IntVec3.Invalid;
-            }
-            
             return true; // Continue with original method
         }
     }

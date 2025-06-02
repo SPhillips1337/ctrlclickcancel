@@ -43,3 +43,23 @@ _ReSharper*/
 # Keep the Assemblies folder but ignore its contents
 /Assemblies/*
 !/Assemblies/.gitkeep
+
+# Keep the 1.5/Assemblies folder but ignore its contents
+/1.5/Assemblies/*
+!/1.5/Assemblies/.gitkeep
+
+# Ignore RimWorld and Harmony reference folders
+/RimWorld/
+/Harmony/
+/References/
+
+# Ignore temporary build files
+/temp_project/
+
+# Ignore compilation scripts (optional, remove if you want to include them)
+# *.sh
+
+# Ignore Docker-related files
+.docker/
+Dockerfile
+docker-compose.yml
