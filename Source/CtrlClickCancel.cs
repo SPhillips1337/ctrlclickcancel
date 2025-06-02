@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -21,7 +22,7 @@ namespace CtrlClickCancel
         // Helper method to check if Ctrl key is pressed
         public static bool IsCtrlPressed()
         {
-            return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            return UnityEngine.Input.GetKey(KeyCode.LeftControl) || UnityEngine.Input.GetKey(KeyCode.RightControl);
         }
     }
 
@@ -63,6 +64,7 @@ namespace CtrlClickCancel
                 if (thing is Blueprint || thing is Frame)
                 {
                     thing.Destroy();
+                    Log.Message($"CtrlClickCancel: Destroyed {thing} at {cell}");
                 }
             }
         }
@@ -96,6 +98,7 @@ namespace CtrlClickCancel
             foreach (Designation designation in designationsAtCell)
             {
                 map.designationManager.RemoveDesignation(designation);
+                Log.Message($"CtrlClickCancel: Removed designation {designation.def} at {cell}");
             }
 
             // Also check for blueprint/frame at the cell
@@ -105,6 +108,7 @@ namespace CtrlClickCancel
                 // Check if it's a blueprint or frame
                 if (thing is Blueprint || thing is Frame)
                 {
+                    Log.Message($"CtrlClickCancel: Destroying {thing} at {cell}");
                     thing.Destroy();
                 }
             }
