@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 
@@ -29,13 +30,24 @@ namespace CtrlClickCancel
             return UnityEngine.Input.GetKey(KeyCode.LeftControl) || UnityEngine.Input.GetKey(KeyCode.RightControl);
         }
         
+        // Helper method to check if we're in a valid context for the mod to operate
+        public static bool IsValidContext()
+        {
+            // Only operate in map view, not in world view
+            if (WorldRendererUtility.WorldRenderedNow || Find.CurrentMap == null)
+            {
+                return false;
+            }
+            
+            return true;
+        }
+        
         // Centralized method to cancel designations at a cell
         public static void CancelDesignationsAt(IntVec3 cell)
         {
             Map map = Find.CurrentMap;
             if (map == null) return;
 
-            Log.Message($"CtrlClickCancel: Attempting to cancel at {cell}");
             bool anythingCanceled = false;
 
             // Get all designations at the cell
@@ -44,7 +56,6 @@ namespace CtrlClickCancel
             // Cancel all designations at the cell
             foreach (Designation designation in designationsAtCell)
             {
-                Log.Message($"CtrlClickCancel: Removing designation {designation.def} at {cell}");
                 map.designationManager.RemoveDesignation(designation);
                 anythingCanceled = true;
             }
@@ -56,16 +67,9 @@ namespace CtrlClickCancel
                 // Check if it's a blueprint or frame
                 if (thing is Blueprint || thing is Frame)
                 {
-                    Log.Message($"CtrlClickCancel: Destroying {thing} at {cell}");
                     thing.Destroy();
                     anythingCanceled = true;
                 }
-            }
-            
-            if (anythingCanceled)
-            {
-                // We'll skip the sound for now since it's causing compilation issues
-                Log.Message("CtrlClickCancel: Successfully canceled designations");
             }
         }
         
@@ -76,10 +80,6 @@ namespace CtrlClickCancel
             {
                 CurrentDesignator = Find.DesignatorManager.SelectedDesignator;
                 isInCancelMode = true;
-                Log.Message($"CtrlClickCancel: Stored current designator: {CurrentDesignator}");
-                
-                // Temporarily deselect the current designator
-                Find.DesignatorManager.Deselect();
             }
         }
         
@@ -88,8 +88,19 @@ namespace CtrlClickCancel
         {
             if (isInCancelMode && CurrentDesignator != null)
             {
-                Log.Message($"CtrlClickCancel: Restoring designator: {CurrentDesignator}");
-                Find.DesignatorManager.Select(CurrentDesignator);
+                // Make sure the designator is still valid
+                if (CurrentDesignator.GetType().IsSubclassOf(typeof(Designator)))
+                {
+                    try
+                    {
+                        Find.DesignatorManager.Select(CurrentDesignator);
+                    }
+                    catch (Exception)
+                    {
+                        // If there's an error, just ignore it
+                    }
+                }
+                
                 isInCancelMode = false;
             }
         }
@@ -103,6 +114,17 @@ namespace CtrlClickCancel
         
         public static void Postfix()
         {
+            // Only process in valid contexts (map view, not world view)
+            if (!CtrlClickCancel.IsValidContext())
+            {
+                // If we were in cancel mode but now in an invalid context, reset state
+                if (wasCtrlPressed)
+                {
+                    wasCtrlPressed = false;
+                }
+                return;
+            }
+            
             bool isCtrlPressed = CtrlClickCancel.IsCtrlPressed();
             
             // If Ctrl was just pressed, store the current designator
@@ -126,17 +148,14 @@ namespace CtrlClickCancel
     {
         public static bool Prefix(Designator __instance, Event ev)
         {
-            // Only handle mouse events when Ctrl is pressed
-            if (CtrlClickCancel.IsCtrlPressed() && (ev.type == EventType.MouseDown || ev.type == EventType.MouseDrag) && ev.button == 0)
+            // Only handle mouse events when Ctrl is pressed and in valid context
+            if (CtrlClickCancel.IsCtrlPressed() && CtrlClickCancel.IsValidContext() && 
+                (ev.type == EventType.MouseDown || ev.type == EventType.MouseDrag) && ev.button == 0)
             {
-                // Store the current designator if we haven't already
-                CtrlClickCancel.StoreCurrentDesignator();
-                
                 // Get the cell under the mouse
                 IntVec3 cell = UI.MouseCell();
                 if (cell.InBounds(Find.CurrentMap))
                 {
-                    Log.Message($"CtrlClickCancel: {ev.type} detected at {cell}");
                     CtrlClickCancel.CancelDesignationsAt(cell);
                     
                     // Consume the event
@@ -154,9 +173,8 @@ namespace CtrlClickCancel
     {
         public static bool Prefix(Designator __instance, IntVec3 c)
         {
-            if (CtrlClickCancel.IsCtrlPressed())
+            if (CtrlClickCancel.IsCtrlPressed() && CtrlClickCancel.IsValidContext())
             {
-                Log.Message("CtrlClickCancel: Intercepted DesignateSingleCell with Ctrl pressed");
                 CtrlClickCancel.CancelDesignationsAt(c);
                 return false; // Skip original method
             }
@@ -170,9 +188,8 @@ namespace CtrlClickCancel
     {
         public static bool Prefix(Designator __instance, IEnumerable<IntVec3> cells)
         {
-            if (CtrlClickCancel.IsCtrlPressed())
+            if (CtrlClickCancel.IsCtrlPressed() && CtrlClickCancel.IsValidContext())
             {
-                Log.Message("CtrlClickCancel: Intercepted DesignateMultiCell with Ctrl pressed");
                 foreach (IntVec3 cell in cells)
                 {
                     CtrlClickCancel.CancelDesignationsAt(cell);
@@ -189,9 +206,8 @@ namespace CtrlClickCancel
     {
         public static bool Prefix(Designator_Build __instance, IntVec3 c)
         {
-            if (CtrlClickCancel.IsCtrlPressed())
+            if (CtrlClickCancel.IsCtrlPressed() && CtrlClickCancel.IsValidContext())
             {
-                Log.Message("CtrlClickCancel: Intercepted Designator_Build.DesignateSingleCell with Ctrl pressed");
                 CtrlClickCancel.CancelDesignationsAt(c);
                 return false; // Skip original method
             }
@@ -209,7 +225,7 @@ namespace CtrlClickCancel
         public static bool Prefix()
         {
             // If Ctrl is pressed and mouse button is down (for both clicks and drags)
-            if (CtrlClickCancel.IsCtrlPressed() && UnityEngine.Input.GetMouseButton(0))
+            if (CtrlClickCancel.IsCtrlPressed() && CtrlClickCancel.IsValidContext() && UnityEngine.Input.GetMouseButton(0))
             {
                 // Get the cell under the mouse
                 IntVec3 cell = UI.MouseCell();
@@ -219,7 +235,6 @@ namespace CtrlClickCancel
                 if (cell.InBounds(Find.CurrentMap) && 
                     (cell != lastProcessedCell || Find.TickManager.TicksGame >= dragTick + 5))
                 {
-                    Log.Message($"CtrlClickCancel: Mouse drag detected at {cell}");
                     CtrlClickCancel.CancelDesignationsAt(cell);
                     
                     // Update the last processed cell and tick
@@ -235,6 +250,36 @@ namespace CtrlClickCancel
                 lastProcessedCell = IntVec3.Invalid;
             }
             
+            return true; // Continue with original method
+        }
+    }
+    
+    // Patch to prevent selection of map objects when in cancel mode
+    [HarmonyPatch(typeof(Selector), "HandleMapClicks")]
+    public static class Selector_HandleMapClicks_Patch
+    {
+        public static bool Prefix()
+        {
+            // If we're in cancel mode, prevent the selector from handling clicks
+            if (CtrlClickCancel.IsCtrlPressed() && CtrlClickCancel.IsValidContext())
+            {
+                return false; // Skip the original method
+            }
+            return true; // Continue with original method
+        }
+    }
+    
+    // Patch to prevent selection of map objects when dragging in cancel mode
+    [HarmonyPatch(typeof(Selector), "Select")]
+    public static class Selector_Select_Patch
+    {
+        public static bool Prefix(object obj)
+        {
+            // If we're in cancel mode, prevent selection of objects
+            if (CtrlClickCancel.IsCtrlPressed() && CtrlClickCancel.IsValidContext())
+            {
+                return false; // Skip the original method
+            }
             return true; // Continue with original method
         }
     }
