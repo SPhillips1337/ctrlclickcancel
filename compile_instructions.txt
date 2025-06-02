@@ -1,0 +1,55 @@
+# Compilation Instructions for CtrlClickCancel Mod
+
+Since you don't have the standard .NET development tools installed on your system, here are a few options for compiling the mod:
+
+## Option 1: Install .NET SDK or Mono
+This is the most straightforward approach for long-term development:
+
+### For .NET SDK:
+```bash
+# For Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-6.0
+
+# After installation
+cd /home/stephen/Documents/rimworld/mods/ctrlclickcancel/Source
+dotnet build
+```
+
+### For Mono:
+```bash
+# For Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install -y mono-complete
+
+# After installation
+cd /home/stephen/Documents/rimworld/mods/ctrlclickcancel/Source
+msbuild CtrlClickCancel.csproj
+```
+
+## Option 2: Use Visual Studio on Windows
+If you have access to a Windows machine with Visual Studio:
+
+1. Copy the Source folder to your Windows machine
+2. Open the CtrlClickCancel.csproj file in Visual Studio
+3. Update the reference paths to point to your RimWorld installation
+4. Build the project
+5. Copy the resulting DLL back to your Linux machine in the Assemblies folder
+
+## Option 3: Use a Docker Container
+You can use a Docker container with .NET SDK installed:
+
+```bash
+docker run --rm -v /home/stephen/Documents/rimworld/mods/ctrlclickcancel:/app -w /app/Source mcr.microsoft.com/dotnet/sdk:6.0 dotnet build
+```
+
+## Option 4: Use an Online C# Compiler
+For a quick test, you could use an online C# compiler service, but you would need to simplify the code to remove RimWorld-specific dependencies.
+
+## After Compilation
+Once you have the compiled DLL, place it in the Assemblies folder of your mod:
+```bash
+cp /path/to/compiled/CtrlClickCancel.dll /home/stephen/Documents/rimworld/mods/ctrlclickcancel/Assemblies/
+```
+
+Then you can test the mod in RimWorld.
