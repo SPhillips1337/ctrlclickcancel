@@ -1,4 +1,7 @@
 # CtrlClickCancel Mod for RimWorld
+### version: 1.0
+### auther: Stephen Phillips
+### mod url: https://github.com/SPhillips1337/ctrlclickcancel
 
 ## Overview
 The CtrlClickCancel mod allows players to easily cancel or remove placed items (like walls, furniture, etc.) while building in RimWorld. By holding down the Ctrl key and clicking on a placed item, players can quickly remove it from the construction queue. When the Ctrl key is released, the mod toggles back to placing items, streamlining the building process.
