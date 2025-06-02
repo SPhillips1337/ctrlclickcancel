@@ -17,7 +17,6 @@ The CtrlClickCancel mod allows players to easily cancel or remove placed items (
 ## Requirements
 - RimWorld 1.4 or 1.5
 - Harmony
-- TD Find Lib
 
 ## How to Use
 1. Start or load a game in RimWorld
