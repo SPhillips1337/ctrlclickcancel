@@ -1,0 +1,51 @@
+# CtrlClickCancel Mod Implementation Plan
+
+## 1. Create Basic Mod Structure
+- Create About folder with ModMetaData.xml and Preview.png
+- Create Assemblies folder for our compiled code
+- Create Source folder for our C# code
+
+## 2. Set Up Development Environment
+- Reference RimWorld assemblies
+- Reference Harmony for patching
+
+## 3. Implement Core Functionality
+- Create a Harmony patch to intercept mouse clicks
+- Implement our own Ctrl key detection using Unity's Input system
+- When Ctrl is pressed and mouse is clicked, cancel the designated item
+- When Ctrl is released, return to normal placement mode
+
+## 4. Create Main Mod Class
+- Initialize Harmony
+- Register necessary event handlers
+- Implement helper method for Ctrl key detection
+
+## 5. Implement Designator Handling
+- Create logic to identify what's under the mouse cursor
+- Implement cancellation of designations, blueprints, and frames
+
+## 6. Testing
+- Test with different types of designations (walls, furniture, etc.)
+- Test edge cases (multiple designations, etc.)
+
+## 7. Finalize
+- Create documentation
+- Package mod for distribution
+
+## 8. Implementation Details
+
+### Key Files Created:
+1. About/ModMetaData.xml - Mod information
+2. Assemblies/ - Directory for compiled mod code
+3. Source/CtrlClickCancel.cs - Main mod class with Harmony patches
+4. Source/Properties/AssemblyInfo.cs - Assembly information
+5. Source/CtrlClickCancel.csproj - Project file for compilation
+
+### Dependencies:
+- Harmony (for patching game methods)
+
+### How It Works:
+1. The mod initializes Harmony to patch the game's designation methods
+2. When a cell is clicked, our patch checks if the Ctrl key is pressed
+3. If Ctrl is pressed, it cancels any designations or blueprints at that location
+4. If Ctrl is not pressed, it allows the normal building behavior to continue

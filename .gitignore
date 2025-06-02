@@ -1,0 +1,45 @@
+# Ignore the src directory (TD Find Lib reference)
+/src/
+
+# Ignore Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Ignore build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Ignore Visual Studio cache/options directory
+.vs/
+
+# Ignore ReSharper files
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Ignore NuGet packages
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# Ignore build results that should not be in source control
+*.dll
+*.pdb
+*.cache
+*.exe
+
+# Keep the Assemblies folder but ignore its contents
+/Assemblies/*
+!/Assemblies/.gitkeep

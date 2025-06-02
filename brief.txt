@@ -1,0 +1,9 @@
+# Prompt to Build CtrlClickCancel Mod for RimWorld
+
+I would like to create a mod for RimWorld called "CtrlClickCancel." This mod should allow players to cancel or remove placed items (like walls and furniture) by holding down the Ctrl key and clicking on the item. When the Ctrl key is released, the mod should toggle back to placing items.
+
+To assist with this, please refer to the following resources:
+1. The **TD Find Lib mod** located in the src/2895299310 dir off the root here, which already has code to capture Ctrl key inputs. This can serve as a foundation for implementing the Ctrl button functionality.
+2. The **RimWorld Modding Tutorial** available at [RimWorld Wiki Modding Tutorials](https://rimworldwiki.com/wiki/Modding_Tutorials) for guidance on mod structure and best practices.
+
+Please provide a step-by-step guide on how to implement this mod, including any necessary code snippets, file structures, and instructions for installation and usage, and save it as plan.txt for us to review the steps we will take to make this. Thank you!
