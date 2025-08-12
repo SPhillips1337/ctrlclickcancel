@@ -48,8 +48,6 @@ namespace CtrlClickCancel
             Map map = Find.CurrentMap;
             if (map == null) return;
 
-            bool anythingCanceled = false;
-
             // Get all designations at the cell
             List<Designation> designationsAtCell = map.designationManager.AllDesignationsAt(cell).ToList();
             
@@ -57,7 +55,6 @@ namespace CtrlClickCancel
             foreach (Designation designation in designationsAtCell)
             {
                 map.designationManager.RemoveDesignation(designation);
-                anythingCanceled = true;
             }
 
             // Also check for blueprint/frame at the cell
@@ -68,7 +65,6 @@ namespace CtrlClickCancel
                 if (thing is Blueprint || thing is Frame)
                 {
                     thing.Destroy();
-                    anythingCanceled = true;
                 }
             }
         }

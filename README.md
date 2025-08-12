@@ -1,5 +1,5 @@
 # CtrlClickCancel Mod for RimWorld
-### version: 1.0
+### version: 1.1
 ### auther: Stephen Phillips
 ### mod url: https://github.com/SPhillips1337/ctrlclickcancel
 
@@ -18,7 +18,7 @@ The CtrlClickCancel mod allows players to easily cancel or remove placed items (
    - For manual installation: Extract to `[RimWorld Directory]/Mods/CtrlClickCancel`
 
 ## Requirements
-- RimWorld 1.4 or 1.5
+- RimWorld 1.4, 1.5, or 1.6
 - Harmony
 
 ## How to Use

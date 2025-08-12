@@ -6,9 +6,10 @@
   <supportedVersions>
     <li>1.4</li>
     <li>1.5</li>
+    <li>1.6</li>
   </supportedVersions>
   <packageId>Stephen.CtrlClickCancel</packageId>
-  <modVersion>1.0</modVersion>
+  <modVersion>1.1</modVersion>
   <description>A simple mod that allows you to cancel or remove placed items by holding Ctrl and clicking on them. When you release Ctrl, you return to placing items without needing to switch tools.</description>
   <modDependencies>
     <li>

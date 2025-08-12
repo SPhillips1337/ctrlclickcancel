@@ -61,6 +61,7 @@ EOF
 # Create output directories
 mkdir -p ./Assemblies
 mkdir -p ./1.5/Assemblies
+mkdir -p ./1.6/Assemblies
 
 # Compile the mod using dotnet
 echo "Compiling with dotnet..."
@@ -71,11 +72,12 @@ dotnet build -c Release
 if [ $? -eq 0 ]; then
     echo "Compilation successful!"
     
-    # Copy the DLL to the 1.5 directory
+    # Copy the DLL to version-specific directories
     cd ..
     cp ./Assemblies/CtrlClickCancel.dll ./1.5/Assemblies/
+    cp ./Assemblies/CtrlClickCancel.dll ./1.6/Assemblies/
     
-    echo "DLL copied to 1.5/Assemblies directory."
+    echo "DLL copied to 1.5/Assemblies and 1.6/Assemblies directories."
     echo "Mod is ready to use!"
     
     # Clean up
